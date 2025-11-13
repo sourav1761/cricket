@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -11,30 +12,27 @@ import Footer from "@/components/Footer";
 export default function PlayerRegistration() {
   const playerRoles = ["Batsman", "Bowler", "All-Rounder"];
 
-
-
-
- // Mapping of states to trial cities
-const stateCityMap = {
-  "Uttar Pradesh": ["Kanpur", "Lucknow", "Varanasi", "Agra"],
-  "Madhya Pradesh": ["Indore", "Bhopal", "Gwalior", "Jabalpur"],
-  "Maharashtra": ["Mumbai", "Pune", "Nagpur"],
-  "Delhi (NCT)": ["Delhi"],
-  Bihar: ["Patna", "Bhagalpur"],
-  Rajasthan: ["Jaipur", "Udaipur", "Jodhpur"],
-  Chhattisgarh: ["Raipur", "Bijapur"],
-  Gujarat: ["Surat", "Ahmedabad"],
-  Odisha: ["Bhubaneswar"],
-  Karnataka: ["Bengaluru"],
-  Telangana: ["Hyderabad"],
-  "Tamil Nadu": ["Chennai"],
-  "West Bengal": ["Kolkata"],
-  Assam: ["Guwahati"],
-  "Andhra Pradesh": ["Visakhapatnam", "Vijayawada"],
-  Punjab: ["Amritsar"],
-  Haryana: ["Gurgaon", "Chandigarh"],
-  Jharkhand: ["Ranchi"],
-};
+  // Mapping of states to trial cities
+  const stateCityMap = {
+    "Uttar Pradesh": ["Kanpur", "Lucknow", "Varanasi", "Agra"],
+    "Madhya Pradesh": ["Indore", "Bhopal", "Gwalior", "Jabalpur"],
+    "Maharashtra": ["Mumbai", "Pune", "Nagpur"],
+    "Delhi (NCT)": ["Delhi"],
+    Bihar: ["Patna", "Bhagalpur"],
+    Rajasthan: ["Jaipur", "Udaipur", "Jodhpur"],
+    Chhattisgarh: ["Raipur", "Bijapur"],
+    Gujarat: ["Surat", "Ahmedabad"],
+    Odisha: ["Bhubaneswar"],
+    Karnataka: ["Bengaluru"],
+    Telangana: ["Hyderabad"],
+    "Tamil Nadu": ["Chennai"],
+    "West Bengal": ["Kolkata"],
+    Assam: ["Guwahati"],
+    "Andhra Pradesh": ["Visakhapatnam", "Vijayawada"],
+    Punjab: ["Amritsar"],
+    Haryana: ["Gurgaon", "Chandigarh"],
+    Jharkhand: ["Ranchi"],
+  };
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -51,15 +49,21 @@ const stateCityMap = {
     profilePhoto: null,
     aadharCard: null,
   });
-// Initialize filters and state controls
-const [filteredStates, setFilteredStates] = useState(Object.keys(stateCityMap));
-const [filteredCities, setFilteredCities] = useState([]);
-const [filteredTrials, setFilteredTrials] = useState([]);
-const [showStates, setShowStates] = useState(false);
-const [showCities, setShowCities] = useState(false);
-const [showTrials, setShowTrials] = useState(false);
-const [showReview, setShowReview] = useState(false);
-const [finalConfirmation, setFinalConfirmation] = useState(false);
+
+  // Initialize filters and state controls
+  const [filteredStates, setFilteredStates] = useState(Object.keys(stateCityMap));
+  const [filteredCities, setFilteredCities] = useState([]);
+  const [filteredTrials, setFilteredTrials] = useState([]);
+  const [showStates, setShowStates] = useState(false);
+  const [showCities, setShowCities] = useState(false);
+  const [showTrials, setShowTrials] = useState(false);
+  const [showReview, setShowReview] = useState(false);
+  const [finalConfirmation, setFinalConfirmation] = useState(false);
+
+  // Refs for dropdowns
+  const stateDropdownRef = useRef(null);
+  const cityDropdownRef = useRef(null);
+  const trialDropdownRef = useRef(null);
 
   // -------------------- FILE UPLOAD HANDLERS --------------------
   const handleFileUpload = (e) => {
@@ -88,58 +92,76 @@ const [finalConfirmation, setFinalConfirmation] = useState(false);
       [name]: type === "checkbox" ? checked : value,
     }));
 
-if (name === "state") {
-  const matches = Object.keys(stateCityMap).filter((s) =>
-    s.toLowerCase().includes(value.toLowerCase())
-  );
-  setFilteredStates(matches);
-  setShowStates(true);
-}
+    if (name === "state") {
+      const matches = Object.keys(stateCityMap).filter((s) =>
+        s.toLowerCase().includes(value.toLowerCase())
+      );
+      setFilteredStates(matches);
+      setShowStates(true);
 
-if (name === "trialsCity") {
-  const currentCities = stateCityMap[formData.state] || [];
-  const matches = currentCities.filter((c) =>
-    c.toLowerCase().includes(value.toLowerCase())
-  );
-  setFilteredTrials(matches);
-  setShowTrials(true);
-}
+      // Reset city and trials city when state changes
+      if (formData.state !== value) {
+        setFormData(prev => ({ ...prev, city: "", trialsCity: "" }));
+        setFilteredCities([]);
+        setFilteredTrials([]);
+      }
+    }
 
+    if (name === "city") {
+      const currentCities = stateCityMap[formData.state] || [];
+      const matches = currentCities.filter((c) =>
+        c.toLowerCase().includes(value.toLowerCase())
+      );
+      setFilteredCities(matches);
+      setShowCities(true);
+    }
+
+    if (name === "trialsCity") {
+      const currentCities = stateCityMap[formData.state] || [];
+      const matches = currentCities.filter((c) =>
+        c.toLowerCase().includes(value.toLowerCase())
+      );
+      setFilteredTrials(matches);
+      setShowTrials(true);
+    }
   };
 
   const handleSelect = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+
     if (field === "state") {
-      setFilteredCities(states[value] || []);
-      setFormData((prev) => ({ ...prev, city: "" }));
+      const cities = stateCityMap[value] || [];
+      setFilteredCities(cities);
+      setFormData(prev => ({ ...prev, city: "", trialsCity: "" }));
       setShowStates(false);
     }
-    if (field === "state") setShowStates(false);
-    if (field === "city") setShowCities(false);
-    if (field === "trialsCity") setShowTrials(false);
-  };
 
-
-  
-const stateDropdownRef = useRef(null);
-const trialDropdownRef = useRef(null);
-
-useEffect(() => {
-  const handleClickOutside = (event) => {
-    if (stateDropdownRef.current && !stateDropdownRef.current.contains(event.target)) {
-      setShowStates(false);
+    if (field === "city") {
+      setShowCities(false);
     }
-    if (trialDropdownRef.current && !trialDropdownRef.current.contains(event.target)) {
+
+    if (field === "trialsCity") {
       setShowTrials(false);
     }
   };
-  document.addEventListener("mousedown", handleClickOutside);
-  return () => {
-    document.removeEventListener("mousedown", handleClickOutside);
-  };
-}, []);
 
-
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (stateDropdownRef.current && !stateDropdownRef.current.contains(event.target)) {
+        setShowStates(false);
+      }
+      if (cityDropdownRef.current && !cityDropdownRef.current.contains(event.target)) {
+        setShowCities(false);
+      }
+      if (trialDropdownRef.current && !trialDropdownRef.current.contains(event.target)) {
+        setShowTrials(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -184,33 +206,44 @@ useEffect(() => {
       submissionData.append("profilePhoto", formData.profilePhoto);
       submissionData.append("aadharCard", formData.aadharCard);
 
-      const res = await axios.post(
-        "http://localhost:5000/api/players",
-        submissionData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
+      const query = new URLSearchParams({
+        name: formData.fullName,
+        email: formData.email,
+        phone: formData.mobile,
+        sid: 'graphic-design-001',
+        planPrice: '1',   // <-- FIXED
+        gateway: 'razorpay',
+      }).toString();
 
-      if (res.status === 201 || res.status === 200) {
-        alert("🎉 Registration successful!");
-        setShowReview(false);
-        setFormData({
-          fullName: "",
-          mobile: "",
-          email: "",
-          dob: "",
-          role: "",
-          battingStyle: "",
-          bowlingStyle: "",
-          state: "",
-          city: "",
-          trialsCity: "",
-          agreeToTerms: false,
-          profilePhoto: null,
-          aadharCard: null,
-        });
-      }
+      window.location.href = `https://predicts.in/checkout/graphic-design?${query}`;
+
+      // const res = await axios.post(
+      //   "http://localhost:5000/api/players",
+      //   submissionData,
+      //   {
+      //     headers: { "Content-Type": "multipart/form-data" },
+      //   }
+      // );
+
+      // if (res.status === 201 || res.status === 200) {
+      //   alert("🎉 Registration successful!");
+      //   setShowReview(false);
+      //   setFormData({
+      //     fullName: "",
+      //     mobile: "",
+      //     email: "",
+      //     dob: "",
+      //     role: "",
+      //     battingStyle: "",
+      //     bowlingStyle: "",
+      //     state: "",
+      //     city: "",
+      //     trialsCity: "",
+      //     agreeToTerms: false,
+      //     profilePhoto: null,
+      //     aadharCard: null,
+      //   });
+      // }
     } catch (err) {
       console.error(err);
       alert("⚠️ Error submitting registration. Please try again.");
@@ -383,7 +416,6 @@ useEffect(() => {
         <div className="container mx-auto max-w-4xl">
           <div className=" backdrop-blur-sm rounded-2xl md:rounded-3xl shadow-2xl overflow-hidden "></div>
           {/* Header */}
-          {/* Header */}
           <div className="bg-gradient-to-r from-[#081B33] to-[#081B33] text-white py-6 md:py-8 px-6 md:px-8 rounded-t-2xl">
             <div className="text-center">
               <h2 className="text-2xl md:text-4xl font-bold mb-2 md:mb-3">
@@ -486,107 +518,126 @@ useEffect(() => {
               </div>
 
               {/* STATE */}
-            {/* STATE */}
-<div className="relative" ref={stateDropdownRef}>
-  <label className="block text-black font-semibold mb-2">State *</label>
-  <input
-    type="text"
-    name="state"
-    value={formData.state}
-    onChange={(e) => {
-      handleChange(e);
-      setShowStates(true);
-    }}
-    onFocus={() => setShowStates(true)}
-    required
-    className="w-full px-4 py-3 bg-transparent border border-gray-400 rounded-lg text-black placeholder-gray-500 outline-none"
-    placeholder="Type to search states..."
-    autoComplete="off"
-  />
+              <div className="relative" ref={stateDropdownRef}>
+                <label className="block text-black font-semibold mb-2">State *</label>
+                <input
+                  type="text"
+                  name="state"
+                  value={formData.state}
+                  onChange={handleChange}
+                  onFocus={() => setShowStates(true)}
+                  required
+                  className="w-full px-4 py-3 bg-transparent border border-gray-400 rounded-lg text-black placeholder-gray-500 outline-none"
+                  placeholder="Type to search states..."
+                  autoComplete="off"
+                />
 
-  {showStates && filteredStates.length > 0 && (
-    <ul className="absolute z-10 w-full mt-1 bg-white border border-gray-400 rounded-lg shadow-lg max-h-40 overflow-y-auto">
-      {filteredStates.map((s) => (
-        <li
-          key={s}
-          onClick={() => {
-            handleSelect("state", s);
-            setShowStates(false); // ✅ closes dropdown after selecting
-          }}
-          className="px-4 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-200 last:border-b-0 text-black"
-        >
-          {s}
-        </li>
-      ))}
-    </ul>
-  )}
-</div>
-
+                {showStates && filteredStates.length > 0 && (
+                  <ul className="absolute z-10 w-full mt-1 bg-white border border-gray-400 rounded-lg shadow-lg max-h-40 overflow-y-auto">
+                    {filteredStates.map((s) => (
+                      <li
+                        key={s}
+                        onClick={() => handleSelect("state", s)}
+                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-200 last:border-b-0 text-black"
+                      >
+                        {s}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
 
               {/* CITY */}
-            {/* CITY */}
-<div className="relative">
-  <label className="block text-black font-semibold mb-2">
-    Your City *
-  </label>
-  <input
-    type="text"
-    name="city"
-    value={formData.city}
-    onChange={handleChange}
-    required
-    className="w-full px-4 py-3 border border-gray-400 rounded-lg outline-none placeholder-gray-500 bg-transparent text-black"
-    placeholder="Enter your city name"
-    autoComplete="off"
-  />
-</div>
+              <div className="relative" ref={cityDropdownRef}>
+                <label className="block text-black font-semibold mb-2">
+                  Your City *
+                </label>
+                <input
+                  type="text"
+                  name="city"
+                  value={formData.city}
+                  onChange={handleChange}
+                  onFocus={() => {
+                    if (formData.state) {
+                      const cities = stateCityMap[formData.state] || [];
+                      setFilteredCities(cities);
+                      setShowCities(true);
+                    }
+                  }}
+                  required
+                  disabled={!formData.state}
+                  className={`w-full px-4 py-3 border rounded-lg outline-none placeholder-gray-500 ${!formData.state
+                      ? "border-gray-300 bg-gray-100 cursor-not-allowed text-gray-500"
+                      : "border-gray-400 bg-transparent text-black"
+                    }`}
+                  placeholder={
+                    formData.state
+                      ? "Type to search cities..."
+                      : "Select state first"
+                  }
+                  autoComplete="off"
+                />
 
+                {showCities && filteredCities.length > 0 && (
+                  <ul className="absolute z-10 w-full mt-1 bg-white border border-gray-400 rounded-lg shadow-lg max-h-40 overflow-y-auto">
+                    {filteredCities.map((c) => (
+                      <li
+                        key={c}
+                        onClick={() => handleSelect("city", c)}
+                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-200 last:border-b-0 text-black"
+                      >
+                        {c}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
 
               {/* TRIAL CITY */}
-             
-{/* TRIAL CITY */}
-<div className="md:col-span-2 relative"  ref={trialDropdownRef} >
-  <label className="block text-black font-semibold mb-2">
-    Preferred Trials City *
-  </label>
-  <input
-    type="text"
-    name="trialsCity"
-    value={formData.trialsCity}
-    onChange={(e) => {
-      handleChange(e);
-      setShowTrials(true);
-    }}
-    onFocus={() => setShowTrials(true)}
-    required
-    disabled={!formData.state}
-    className={`w-full px-4 py-3 border rounded-lg outline-none placeholder-gray-500 ${
-      !formData.state
-        ? "border-gray-300 bg-gray-100 cursor-not-allowed text-gray-500"
-        : "border-gray-400 bg-transparent text-black"
-    }`}
-    placeholder={
-      formData.state
-        ? "Select your preferred trial city"
-        : "Select state first"
-    }
-    autoComplete="off"
-  />
-  
-  {showTrials && filteredTrials.length > 0 && (
-    <ul className="absolute z-10 w-full mt-1 bg-white border border-gray-400 rounded-lg shadow-lg max-h-40 overflow-y-auto">
-      {filteredTrials.map((t) => (
-        <li
-          key={t}
-          onClick={() => handleSelect("trialsCity", t)}
-          className="px-4 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-200 last:border-b-0 text-black"
-        >
-          {t}
-        </li>
-      ))}
-    </ul>
-  )}
-</div>
+              <div className="md:col-span-2 relative" ref={trialDropdownRef}>
+                <label className="block text-black font-semibold mb-2">
+                  Preferred Trials City *
+                </label>
+                <input
+                  type="text"
+                  name="trialsCity"
+                  value={formData.trialsCity}
+                  onChange={handleChange}
+                  onFocus={() => {
+                    if (formData.state) {
+                      const cities = stateCityMap[formData.state] || [];
+                      setFilteredTrials(cities);
+                      setShowTrials(true);
+                    }
+                  }}
+                  required
+                  disabled={!formData.state}
+                  className={`w-full px-4 py-3 border rounded-lg outline-none placeholder-gray-500 ${!formData.state
+                      ? "border-gray-300 bg-gray-100 cursor-not-allowed text-gray-500"
+                      : "border-gray-400 bg-transparent text-black"
+                    }`}
+                  placeholder={
+                    formData.state
+                      ? "Select your preferred trial city"
+                      : "Select state first"
+                  }
+                  autoComplete="off"
+                />
+
+                {showTrials && filteredTrials.length > 0 && (
+                  <ul className="absolute z-10 w-full mt-1 bg-white border border-gray-400 rounded-lg shadow-lg max-h-40 overflow-y-auto">
+                    {filteredTrials.map((t) => (
+                      <li
+                        key={t}
+                        onClick={() => handleSelect("trialsCity", t)}
+                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-200 last:border-b-0 text-black"
+                      >
+                        {t}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
 
               {/* FILE UPLOADS */}
               <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -651,7 +702,6 @@ useEffect(() => {
                 </div>
 
                 {/* Aadhar Card */}
-                {/* Aadhar Card */}
                 <div>
                   <label className="block text-black font-semibold mb-2">
                     Aadhar Card Copy *
@@ -714,7 +764,6 @@ useEffect(() => {
             </div>
 
             {/* REGISTRATION DETAILS */}
-            {/* Registration Fee Section */}
             <div className="mt-8 bg-gradient-to-br from-slate-50 to-blue-50 border border-slate-200 rounded-2xl p-6 md:p-8">
               <h3 className="text-xl md:text-2xl font-bold text-slate-800 mb-6 text-center">
                 Registration Details
@@ -742,7 +791,6 @@ useEffect(() => {
                     name="agreeToTerms"
                     checked={formData.agreeToTerms}
                     onChange={handleChange}
-                    //onChange={(e) => setFormData(prev => ({...prev, agreeToTerms: e.target.checked}))}
                     required
                     className="mt-1 text-emerald-600 focus:ring-emerald-500 rounded border-slate-300"
                   />
@@ -773,31 +821,30 @@ useEffect(() => {
       </section>
 
       {/* REVIEW MODAL */}
- {/* REVIEW MODAL */}
-{showReview && (
-  <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-0 sm:p-4">
-    <div
-      className="
-        bg-white
-        border border-white/20
-        w-full
-        h-full sm:h-auto
-        max-w-full sm:max-w-2xl
-        mx-0 sm:mx-auto
-        my-0 sm:my-8
-        rounded-none sm:rounded-2xl
-        shadow-2xl
-        overflow-auto
-        flex flex-col
-      "
-    >
-      {/* Header */}
-      <div className="bg-gradient-to-r from-emerald-500 to-blue-600 text-white py-6 px-4 sm:px-8">
-        <h2 className="text-2xl font-bold text-center">Review Your Registration</h2>
-        <p className="text-center text-blue-100 mt-2">Verify all details before final submission</p>
-      </div>
+      {showReview && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-0 sm:p-4">
+          <div
+            className="
+              bg-white
+              border border-white/20
+              w-full
+              h-full sm:h-auto
+              max-w-full sm:max-w-2xl
+              mx-0 sm:mx-auto
+              my-0 sm:my-8
+              rounded-none sm:rounded-2xl
+              shadow-2xl
+              overflow-auto
+              flex flex-col
+            "
+          >
+            {/* Header */}
+            <div className="bg-gradient-to-r from-emerald-500 to-blue-600 text-white py-6 px-4 sm:px-8">
+              <h2 className="text-2xl font-bold text-center">Review Your Registration</h2>
+              <p className="text-center text-blue-100 mt-2">Verify all details before final submission</p>
+            </div>
 
-       {/* Review Content */}
+            {/* Review Content */}
             <div className="p-6 space-y-6 max-h-[55vh] overflow-y-auto">
               {/* Personal Information */}
               <div className="border border-slate-200 rounded-xl p-5 bg-slate-50/50">
@@ -979,30 +1026,30 @@ useEffect(() => {
               </div>
             </div>
 
-      {/* Action Buttons */}
-      <div className="flex flex-col md:flex-row justify-between p-4 sm:p-6 border-t border-slate-200 bg-slate-50 space-y-3 md:space-y-0 md:space-x-4">
-        <button
-          type="button"
-          onClick={() => setShowReview(false)}
-          className="px-8 py-3 border-2 border-slate-400 text-slate-700 rounded-xl font-semibold hover:border-slate-500 hover:bg-slate-100 transition-all duration-300"
-        >
-          Edit Details
-        </button>
-        <button
-          type="button"
-          onClick={handleFinalSubmit}
-          disabled={!finalConfirmation}
-          className="px-8 py-3 bg-gradient-to-r from-emerald-500 to-blue-600 text-white rounded-xl font-semibold hover:from-emerald-600 hover:to-blue-700 transition-all duration-300 disabled:from-slate-400 disabled:to-slate-400 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
-        >
-          <span>Complete Registration - ₹749</span>
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"/>
-          </svg>
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+            {/* Action Buttons */}
+            <div className="flex flex-col md:flex-row justify-between p-4 sm:p-6 border-t border-slate-200 bg-slate-50 space-y-3 md:space-y-0 md:space-x-4">
+              <button
+                type="button"
+                onClick={() => setShowReview(false)}
+                className="px-8 py-3 border-2 border-slate-400 text-slate-700 rounded-xl font-semibold hover:border-slate-500 hover:bg-slate-100 transition-all duration-300"
+              >
+                Edit Details
+              </button>
+              <button
+                type="button"
+                onClick={handleFinalSubmit}
+                disabled={!finalConfirmation}
+                className="px-8 py-3 bg-gradient-to-r from-emerald-500 to-blue-600 text-white rounded-xl font-semibold hover:from-emerald-600 hover:to-blue-700 transition-all duration-300 disabled:from-slate-400 disabled:to-slate-400 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+              >
+                <span>Complete Registration - ₹749</span>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Cricket Teams Section */}
       <section className="py-12 md:py-16 px-4 bg-white">
