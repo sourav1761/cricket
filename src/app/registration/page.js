@@ -57,7 +57,7 @@ export default function PlayerRegistration() {
   const registerPlayer = async () => {
     try {
       const res = await axios.post(
-        "https://api.predicts.in/api/players",
+        "http://localhost:5000/api/players",
         submissionData,
         {
           headers: { "Content-Type": "multipart/form-data" },
@@ -74,14 +74,9 @@ export default function PlayerRegistration() {
           email: "",
           dob: "",
           role: "",
-          battingStyle: "",
-          bowlingStyle: "",
           state: "",
           city: "",
           trialsCity: "",
-          agreeToTerms: false,
-          profilePhoto: null,
-          aadharCard: null,
         });
 
         localStorage.removeItem("player"); // remove saved player
