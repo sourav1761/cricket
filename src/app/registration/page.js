@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-
+import { useSearchParams } from "next/navigation";
 import Head from "next/head";
 import Link from "next/link";
 import axios from "axios";
@@ -10,6 +10,93 @@ import Navigation from "../../components/Navigation";
 import Footer from "@/components/Footer";
 
 export default function PlayerRegistration() {
+
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+  const acpl = searchParams.get("acpl");
+
+  // ❌ If acpl not provided → do nothing
+  if (!acpl) return;
+
+  // 1️⃣ Get player from localStorage
+  const stored = localStorage.getItem("player");
+  if (!stored) {
+    console.log("No player data found in localStorage");
+    return;
+  };
+
+  const parsed = JSON.parse(stored);
+
+  // 2️⃣ Expiry check (5 minutes)
+  if (Date.now() > parsed.expiry) {
+    localStorage.removeItem("player");
+    console.log("Player data expired");
+    return;
+  }
+
+  const player = parsed.data;
+
+  // 3️⃣ Replace email with ?acpl=EMAIL
+  player.email = acpl;
+
+  // 4️⃣ Prepare FormData
+  const submissionData = new FormData();
+  submissionData.append("fullName", player.fullName);
+  submissionData.append("mobile", player.mobile);
+  submissionData.append("email", player.email);
+  submissionData.append("dob", player.dob);
+  submissionData.append("role", player.role);
+  submissionData.append("state", player.state);
+  submissionData.append("city", player.city);
+  submissionData.append("trialsCity", player.trialsCity);
+  submissionData.append("profilePhoto", player.profilePhoto);
+  submissionData.append("aadharCard", player.aadharCard);
+
+  // 5️⃣ Submit to backend
+  const registerPlayer = async () => {
+    try {
+      const res = await axios.post(
+        "https://api.predicts.in/api/players",
+        submissionData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+
+      if (res.status === 200 || res.status === 201) {
+        alert("🎉 Registration successful!");
+
+        setShowReview(false);
+        setFormData({
+          fullName: "",
+          mobile: "",
+          email: "",
+          dob: "",
+          role: "",
+          battingStyle: "",
+          bowlingStyle: "",
+          state: "",
+          city: "",
+          trialsCity: "",
+          agreeToTerms: false,
+          profilePhoto: null,
+          aadharCard: null,
+        });
+
+        localStorage.removeItem("player"); // remove saved player
+      }
+    } catch (err) {
+      console.error("Player registration failed:", err);
+    }
+  };
+
+  registerPlayer();
+}, []); // runs once on mount ONLY
+
+
+
+
   const playerRoles = ["Batsman", "Bowler", "All-Rounder"];
 
   // Mapping of states to trial cities
@@ -215,35 +302,15 @@ export default function PlayerRegistration() {
         gateway: 'razorpay',
       }).toString();
 
+      const playerObj = {
+        data: formData,
+        expiry: Date.now() + 10 * 60 * 1000, // expires after 5 minutes
+      };
+      localStorage.setItem("player", JSON.stringify(playerObj));
+
       window.location.href = `https://predicts.in/checkout/graphic-design?${query}`;
 
-      // const res = await axios.post(
-      //   "http://localhost:5000/api/players",
-      //   submissionData,
-      //   {
-      //     headers: { "Content-Type": "multipart/form-data" },
-      //   }
-      // );
-
-      // if (res.status === 201 || res.status === 200) {
-      //   alert("🎉 Registration successful!");
-      //   setShowReview(false);
-      //   setFormData({
-      //     fullName: "",
-      //     mobile: "",
-      //     email: "",
-      //     dob: "",
-      //     role: "",
-      //     battingStyle: "",
-      //     bowlingStyle: "",
-      //     state: "",
-      //     city: "",
-      //     trialsCity: "",
-      //     agreeToTerms: false,
-      //     profilePhoto: null,
-      //     aadharCard: null,
-      //   });
-      // }
+      
     } catch (err) {
       console.error(err);
       alert("⚠️ Error submitting registration. Please try again.");
@@ -567,8 +634,8 @@ export default function PlayerRegistration() {
                   required
                   disabled={!formData.state}
                   className={`w-full px-4 py-3 border rounded-lg outline-none placeholder-gray-500 ${!formData.state
-                      ? "border-gray-300 bg-gray-100 cursor-not-allowed text-gray-500"
-                      : "border-gray-400 bg-transparent text-black"
+                    ? "border-gray-300 bg-gray-100 cursor-not-allowed text-gray-500"
+                    : "border-gray-400 bg-transparent text-black"
                     }`}
                   placeholder={
                     formData.state
@@ -613,8 +680,8 @@ export default function PlayerRegistration() {
                   required
                   disabled={!formData.state}
                   className={`w-full px-4 py-3 border rounded-lg outline-none placeholder-gray-500 ${!formData.state
-                      ? "border-gray-300 bg-gray-100 cursor-not-allowed text-gray-500"
-                      : "border-gray-400 bg-transparent text-black"
+                    ? "border-gray-300 bg-gray-100 cursor-not-allowed text-gray-500"
+                    : "border-gray-400 bg-transparent text-black"
                     }`}
                   placeholder={
                     formData.state
