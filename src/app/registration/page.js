@@ -1,7 +1,6 @@
-
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Head from "next/head";
 import Link from "next/link";
@@ -9,94 +8,92 @@ import axios from "axios";
 import Navigation from "../../components/Navigation";
 import Footer from "@/components/Footer";
 
-export default function PlayerRegistration() {
-
+// Inner component that uses useSearchParams
+function PlayerRegistrationContent() {
   const searchParams = useSearchParams();
 
-useEffect(() => {
-  const acpl = searchParams.get("acpl");
-  if (!acpl) return;
+  useEffect(() => {
+    const acpl = searchParams.get("acpl");
+    if (!acpl) return;
 
-  const stored = localStorage.getItem("player");
-  if (!stored) {
-    console.log("No player data found in localStorage");
-    return;
-  }
-
-  const parsed = JSON.parse(stored);
-  if (Date.now() > parsed.expiry) {
-    localStorage.removeItem("player");
-    console.log("Player data expired");
-    return;
-  }
-
-  const player = parsed.data;
-  console.log("Registering player:", player);
-
-  // Replace email with ?acpl=EMAIL
-  player.email = acpl;
-
-  const registerPlayer = async () => {
-    try {
-      // ✅ FIRST: Test if backend is reachable
-
-      // ✅ CLEAN: Remove unwanted fields before sending
-      const cleanPlayerData = {
-        fullName: player.fullName,
-        mobile: player.mobile,
-        email: player.email,
-        dob: player.dob,
-        role: player.role,
-        state: player.state,
-        city: player.city,
-        trialsCity: player.trialsCity,
-        aadharNumber: player.aadharNumber,
-      };
-
-      console.log("Sending clean data:", cleanPlayerData);
-
-      // ✅ ACTUAL REGISTRATION
-      const res = await axios.post(
-        "http://localhost:5001/api/players",
-        cleanPlayerData,
-        {
-          headers: { "Content-Type": "application/json" },
-          timeout: 10000, // 10 second timeout
-        }
-      );
-
-      if (res.status === 200 || res.status === 201) {
-        alert("🎉 Registration successful!");
-        setShowReview(false);
-        setFormData({
-          fullName: "",
-          mobile: "",
-          email: "",
-          dob: "",
-          role: "",
-          battingStyle: "",
-          bowlingStyle: "",
-          state: "",
-          city: "",
-          trialsCity: "",
-          agreeToTerms: false,
-        });
-        localStorage.removeItem("player");
-      }
-    } catch (err) {
-      console.error("Player registration failed:", err);
-      if (err.code === 'ERR_NETWORK') {
-        alert("❌ Cannot connect to server. Please make sure the backend is running on localhost:5001");
-      } else {
-        alert("❌ Registration failed: " + (err.response?.data?.message || "Please try again."));
-      }
+    const stored = localStorage.getItem("player");
+    if (!stored) {
+      console.log("No player data found in localStorage");
+      return;
     }
-  };
 
-  registerPlayer();
-}, [searchParams]);
+    const parsed = JSON.parse(stored);
+    if (Date.now() > parsed.expiry) {
+      localStorage.removeItem("player");
+      console.log("Player data expired");
+      return;
+    }
 
+    const player = parsed.data;
+    console.log("Registering player:", player);
 
+    // Replace email with ?acpl=EMAIL
+    player.email = acpl;
+
+    const registerPlayer = async () => {
+      try {
+        // ✅ FIRST: Test if backend is reachable
+
+        // ✅ CLEAN: Remove unwanted fields before sending
+        const cleanPlayerData = {
+          fullName: player.fullName,
+          mobile: player.mobile,
+          email: player.email,
+          dob: player.dob,
+          role: player.role,
+          state: player.state,
+          city: player.city,
+          trialsCity: player.trialsCity,
+          aadharNumber: player.aadharNumber,
+        };
+
+        console.log("Sending clean data:", cleanPlayerData);
+
+        // ✅ ACTUAL REGISTRATION
+        const res = await axios.post(
+          "http://localhost:5001/api/players",
+          cleanPlayerData,
+          {
+            headers: { "Content-Type": "application/json" },
+            timeout: 10000, // 10 second timeout
+          }
+        );
+
+        if (res.status === 200 || res.status === 201) {
+          alert("🎉 Registration successful!");
+          setShowReview(false);
+          setFormData({
+            fullName: "",
+            mobile: "",
+            email: "",
+            dob: "",
+            role: "",
+            battingStyle: "",
+            bowlingStyle: "",
+            state: "",
+            city: "",
+            trialsCity: "",
+            agreeToTerms: false,
+          });
+          localStorage.removeItem("player");
+        }
+      } catch (err) {
+        console.error("Player registration failed:", err);
+        if (err.code === 'ERR_NETWORK') {
+          alert("❌ Cannot connect to server. Please make sure the backend is running on localhost:5001");
+        } else {
+          alert("❌ Registration failed: " + (err.response?.data?.message || "Please try again."));
+        }
+      }
+    };
+
+    registerPlayer();
+  }, [searchParams]);
 
   const playerRoles = ["Batsman", "Bowler", "All-Rounder"];
 
@@ -1138,5 +1135,26 @@ useEffect(() => {
 
       <Footer />
     </div>
+  );
+}
+
+// Loading component
+function PlayerRegistrationLoading() {
+  return (
+    <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+        <p className="mt-4 text-gray-600">Loading registration form...</p>
+      </div>
+    </div>
+  );
+}
+
+// Main component with Suspense boundary
+export default function PlayerRegistration() {
+  return (
+    <Suspense fallback={<PlayerRegistrationLoading />}>
+      <PlayerRegistrationContent />
+    </Suspense>
   );
 }
