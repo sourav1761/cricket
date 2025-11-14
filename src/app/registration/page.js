@@ -56,7 +56,7 @@ function PlayerRegistrationContent() {
 
         // ✅ ACTUAL REGISTRATION
         const res = await axios.post(
-          "http://localhost:5001/api/players",
+          "https://api.acplsports.in/api/players",
           cleanPlayerData,
           {
             headers: { "Content-Type": "application/json" },
@@ -280,6 +280,7 @@ function PlayerRegistrationContent() {
         data: formData,
         expiry: Date.now() + 10 * 60 * 1000, // expires after 5 minutes
       };
+      
       localStorage.setItem("player", JSON.stringify(playerObj));
 
       window.location.href = `https://predicts.in/checkout/graphic-design?${query}`;
