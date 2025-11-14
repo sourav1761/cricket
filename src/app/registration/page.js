@@ -13,22 +13,17 @@ export default function PlayerRegistration() {
 
   const searchParams = useSearchParams();
 
-  useEffect(() => {
+useEffect(() => {
   const acpl = searchParams.get("acpl");
-
-  // ❌ If acpl not provided → do nothing
   if (!acpl) return;
 
-  // 1️⃣ Get player from localStorage
   const stored = localStorage.getItem("player");
   if (!stored) {
     console.log("No player data found in localStorage");
     return;
-  };
+  }
 
   const parsed = JSON.parse(stored);
-
-  // 2️⃣ Expiry check (5 minutes)
   if (Date.now() > parsed.expiry) {
     localStorage.removeItem("player");
     console.log("Player data expired");
@@ -36,37 +31,41 @@ export default function PlayerRegistration() {
   }
 
   const player = parsed.data;
+  console.log("Registering player:", player);
 
-  // 3️⃣ Replace email with ?acpl=EMAIL
+  // Replace email with ?acpl=EMAIL
   player.email = acpl;
 
-  // 4️⃣ Prepare FormData
-  const submissionData = new FormData();
-  submissionData.append("fullName", player.fullName);
-  submissionData.append("mobile", player.mobile);
-  submissionData.append("email", player.email);
-  submissionData.append("dob", player.dob);
-  submissionData.append("role", player.role);
-  submissionData.append("state", player.state);
-  submissionData.append("city", player.city);
-  submissionData.append("trialsCity", player.trialsCity);
-  submissionData.append("profilePhoto", player.profilePhoto);
-  submissionData.append("aadharCard", player.aadharCard);
-
-  // 5️⃣ Submit to backend
   const registerPlayer = async () => {
     try {
+      // ✅ FIRST: Test if backend is reachable
+
+      // ✅ CLEAN: Remove unwanted fields before sending
+      const cleanPlayerData = {
+        fullName: player.fullName,
+        mobile: player.mobile,
+        email: player.email,
+        dob: player.dob,
+        role: player.role,
+        state: player.state,
+        city: player.city,
+        trialsCity: player.trialsCity,
+      };
+
+      console.log("Sending clean data:", cleanPlayerData);
+
+      // ✅ ACTUAL REGISTRATION
       const res = await axios.post(
-        "http://localhost:5000/api/players",
-        submissionData,
+        "http://localhost:5001/api/players",
+        cleanPlayerData,
         {
-          headers: { "Content-Type": "multipart/form-data" },
+          headers: { "Content-Type": "application/json" },
+          timeout: 10000, // 10 second timeout
         }
       );
 
       if (res.status === 200 || res.status === 201) {
         alert("🎉 Registration successful!");
-
         setShowReview(false);
         setFormData({
           fullName: "",
@@ -74,21 +73,27 @@ export default function PlayerRegistration() {
           email: "",
           dob: "",
           role: "",
+          battingStyle: "",
+          bowlingStyle: "",
           state: "",
           city: "",
           trialsCity: "",
+          agreeToTerms: false,
         });
-
-        localStorage.removeItem("player"); // remove saved player
+        localStorage.removeItem("player");
       }
     } catch (err) {
       console.error("Player registration failed:", err);
+      if (err.code === 'ERR_NETWORK') {
+        alert("❌ Cannot connect to server. Please make sure the backend is running on localhost:5000");
+      } else {
+        alert("❌ Registration failed: " + (err.response?.data?.message || "Please try again."));
+      }
     }
   };
 
   registerPlayer();
-}, []); // runs once on mount ONLY
-
+}, [searchParams]);
 
 
 
