@@ -138,7 +138,7 @@ export default function SponsorshipPage() {
     console.log('Sponsorship form submitted:', formData);
 
     try {
-      const response = await fetch('http://localhost:5000/api/sponsors', {
+      const response = await fetch('http://localhost:5001/api/sponsors', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

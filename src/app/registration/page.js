@@ -50,6 +50,7 @@ useEffect(() => {
         state: player.state,
         city: player.city,
         trialsCity: player.trialsCity,
+        aadharNumber: player.aadharNumber,
       };
 
       console.log("Sending clean data:", cleanPlayerData);
@@ -85,7 +86,7 @@ useEffect(() => {
     } catch (err) {
       console.error("Player registration failed:", err);
       if (err.code === 'ERR_NETWORK') {
-        alert("❌ Cannot connect to server. Please make sure the backend is running on localhost:5000");
+        alert("❌ Cannot connect to server. Please make sure the backend is running on localhost:5001");
       } else {
         alert("❌ Registration failed: " + (err.response?.data?.message || "Please try again."));
       }
@@ -133,8 +134,7 @@ useEffect(() => {
     city: "",
     trialsCity: "",
     agreeToTerms: false,
-    profilePhoto: null,
-    aadharCard: null,
+    aadharNumber: "",
   });
 
   // Initialize filters and state controls
@@ -149,27 +149,8 @@ useEffect(() => {
 
   // Refs for dropdowns
   const stateDropdownRef = useRef(null);
-  const cityDropdownRef = useRef(null);
   const trialDropdownRef = useRef(null);
 
-  // -------------------- FILE UPLOAD HANDLERS --------------------
-  const handleFileUpload = (e) => {
-    const file = e.target.files[0];
-    if (file && file.size > 2 * 1024 * 1024) {
-      alert("Profile photo size must be under 2MB.");
-      return;
-    }
-    setFormData((prev) => ({ ...prev, profilePhoto: file }));
-  };
-
-  const handleAadharUpload = (e) => {
-    const file = e.target.files[0];
-    if (file && file.size > 5 * 1024 * 1024) {
-      alert("Aadhar file size must be under 5MB.");
-      return;
-    }
-    setFormData((prev) => ({ ...prev, aadharCard: file }));
-  };
   // -------------------------------------------------------------
 
   const handleChange = (e) => {
@@ -237,9 +218,7 @@ useEffect(() => {
       if (stateDropdownRef.current && !stateDropdownRef.current.contains(event.target)) {
         setShowStates(false);
       }
-      if (cityDropdownRef.current && !cityDropdownRef.current.contains(event.target)) {
-        setShowCities(false);
-      }
+   
       if (trialDropdownRef.current && !trialDropdownRef.current.contains(event.target)) {
         setShowTrials(false);
       }
@@ -263,8 +242,7 @@ useEffect(() => {
       !formData.city ||
       !formData.trialsCity ||
       !formData.agreeToTerms ||
-      !formData.profilePhoto ||
-      !formData.aadharCard
+      !formData.aadharNumber
     ) {
       alert("Please fill all required fields and upload all documents.");
       return;
@@ -290,8 +268,7 @@ useEffect(() => {
       submissionData.append("state", formData.state);
       submissionData.append("city", formData.city);
       submissionData.append("trialsCity", formData.trialsCity);
-      submissionData.append("profilePhoto", formData.profilePhoto);
-      submissionData.append("aadharCard", formData.aadharCard);
+      submissionData.append("aadharNumber", formData.aadharNumber);
 
       const query = new URLSearchParams({
         name: formData.fullName,
@@ -548,6 +525,23 @@ useEffect(() => {
                 />
               </div>
 
+               {/* MOBILE */}
+              <div>
+                <label className="block text-black font-semibold mb-2">
+                  Aadhar Number *
+                </label>
+                <input
+                  type="tel"
+                  name="aadharNumber"
+                  value={formData.aadharNumber}
+                  onChange={handleChange}
+                  required
+                  pattern="[0-9]{12}"
+                  className="w-full px-4 py-3 bg-transparent border border-gray-400 rounded-lg text-black placeholder-gray-500 outline-none"
+                  placeholder="10-digit mobile number"
+                />
+              </div>
+
               {/* DOB */}
               <div>
                 <label className="block text-black font-semibold mb-2">
@@ -615,7 +609,7 @@ useEffect(() => {
               </div>
 
               {/* CITY */}
-              <div className="relative" ref={cityDropdownRef}>
+              <div className="relative" >
                 <label className="block text-black font-semibold mb-2">
                   Your City *
                 </label>
@@ -624,40 +618,16 @@ useEffect(() => {
                   name="city"
                   value={formData.city}
                   onChange={handleChange}
-                  onFocus={() => {
-                    if (formData.state) {
-                      const cities = stateCityMap[formData.state] || [];
-                      setFilteredCities(cities);
-                      setShowCities(true);
-                    }
-                  }}
                   required
-                  disabled={!formData.state}
                   className={`w-full px-4 py-3 border rounded-lg outline-none placeholder-gray-500 ${!formData.state
                     ? "border-gray-300 bg-gray-100 cursor-not-allowed text-gray-500"
                     : "border-gray-400 bg-transparent text-black"
                     }`}
-                  placeholder={
-                    formData.state
-                      ? "Type to search cities..."
-                      : "Select state first"
-                  }
+                  placeholder={"Enter your city"}
                   autoComplete="off"
                 />
 
-                {showCities && filteredCities.length > 0 && (
-                  <ul className="absolute z-10 w-full mt-1 bg-white border border-gray-400 rounded-lg shadow-lg max-h-40 overflow-y-auto">
-                    {filteredCities.map((c) => (
-                      <li
-                        key={c}
-                        onClick={() => handleSelect("city", c)}
-                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-200 last:border-b-0 text-black"
-                      >
-                        {c}
-                      </li>
-                    ))}
-                  </ul>
-                )}
+
               </div>
 
               {/* TRIAL CITY */}
@@ -706,128 +676,7 @@ useEffect(() => {
                 )}
               </div>
 
-              {/* FILE UPLOADS */}
-              <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Profile Photo */}
-                <div>
-                  <label className="block text-black font-semibold mb-2">
-                    Profile Photo *
-                  </label>
-
-                  <div className="border-2 border-dashed border-gray-400 rounded-lg p-4 text-center bg-transparent transition hover:border-blue-500 hover:bg-blue-50/20">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileUpload}
-                      className="hidden"
-                      id="profilePhoto"
-                      required
-                    />
-                    <label htmlFor="profilePhoto" className="cursor-pointer">
-                      <div className="flex flex-col items-center">
-                        <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center mb-2">
-                          <svg
-                            className="w-5 h-5 text-gray-600"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="2"
-                              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                            />
-                          </svg>
-                        </div>
-                        <span className="text-gray-700 font-medium text-sm">
-                          Upload Profile Photo
-                        </span>
-                        <p className="text-gray-500 text-xs mt-1">
-                          JPEG, PNG - Max 2MB
-                        </p>
-                      </div>
-                    </label>
-                  </div>
-
-                  {formData.profilePhoto && (
-                    <p className="text-green-600 font-semibold mt-2 text-sm flex items-center justify-center">
-                      <svg
-                        className="w-4 h-4 mr-1"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                      Uploaded successfully
-                    </p>
-                  )}
-                </div>
-
-                {/* Aadhar Card */}
-                <div>
-                  <label className="block text-black font-semibold mb-2">
-                    Aadhar Card Copy *
-                  </label>
-
-                  <div className="border-2 border-dashed border-gray-400 rounded-lg p-4 text-center bg-transparent transition hover:border-blue-500 hover:bg-blue-50/20">
-                    <input
-                      type="file"
-                      accept=".pdf,.jpg,.jpeg,.png"
-                      onChange={handleAadharUpload}
-                      className="hidden"
-                      id="aadharCard"
-                      required
-                    />
-                    <label htmlFor="aadharCard" className="cursor-pointer">
-                      <div className="flex flex-col items-center">
-                        <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center mb-2">
-                          <svg
-                            className="w-5 h-5 text-gray-600"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="2"
-                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                            />
-                          </svg>
-                        </div>
-                        <span className="text-gray-700 font-medium text-sm">
-                          Upload Aadhar Card
-                        </span>
-                        <p className="text-gray-500 text-xs mt-1">
-                          PDF, JPEG, PNG - Max 5MB
-                        </p>
-                      </div>
-                    </label>
-                  </div>
-
-                  {formData.aadharCard && (
-                    <p className="text-green-600 font-semibold mt-2 text-sm flex items-center justify-center">
-                      <svg
-                        className="w-4 h-4 mr-1"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                      Uploaded successfully
-                    </p>
-                  )}
-                </div>
-              </div>
+            
             </div>
 
             {/* REGISTRATION DETAILS */}
@@ -994,22 +843,6 @@ useEffect(() => {
                   </div>
                   <div>
                     <label className="text-sm font-semibold text-slate-600">
-                      Batting Style
-                    </label>
-                    <p className="text-slate-800 font-medium">
-                      {formData.battingStyle}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-semibold text-slate-600">
-                      Bowling Style
-                    </label>
-                    <p className="text-slate-800 font-medium">
-                      {formData.bowlingStyle}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-semibold text-slate-600">
                       State
                     </label>
                     <p className="text-slate-800 font-medium">
@@ -1035,43 +868,7 @@ useEffect(() => {
                 </div>
               </div>
 
-              {/* Documents Uploaded */}
-              <div className="border border-slate-200 rounded-xl p-5 bg-slate-50/50">
-                <h3 className="text-xl font-bold text-slate-800 mb-4 flex items-center">
-                  <svg
-                    className="w-5 h-5 mr-2 text-emerald-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                    />
-                  </svg>
-                  Documents Uploaded
-                </h3>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 bg-emerald-50 rounded-lg border border-emerald-200">
-                    <span className="text-emerald-700 font-medium">
-                      Profile Photo
-                    </span>
-                    <span className="text-emerald-600 font-semibold">
-                      ✓ Uploaded
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between p-3 bg-emerald-50 rounded-lg border border-emerald-200">
-                    <span className="text-emerald-700 font-medium">
-                      Aadhar Card
-                    </span>
-                    <span className="text-emerald-600 font-semibold">
-                      ✓ Uploaded
-                    </span>
-                  </div>
-                </div>
-              </div>
+     
 
               {/* Final Confirmation */}
               <div className="bg-blue-50 border border-blue-200 rounded-xl p-5">
