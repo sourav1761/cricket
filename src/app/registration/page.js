@@ -272,7 +272,7 @@ function PlayerRegistrationContent() {
         email: formData.email,
         phone: formData.mobile,
         sid: 'graphic-design-001',
-        planPrice: '1',   // <-- FIXED
+        planPrice: '749',   // <-- FIXED
         gateway: 'razorpay',
       }).toString();
 
