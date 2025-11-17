@@ -11,6 +11,8 @@ import Footer from "@/components/Footer";
 // Inner component that uses useSearchParams
 function PlayerRegistrationContent() {
   const searchParams = useSearchParams();
+  const [loading, setLoading] = useState(false);
+
 
   useEffect(() => {
     const acpl = searchParams.get("acpl");
@@ -37,9 +39,8 @@ function PlayerRegistrationContent() {
 
     const registerPlayer = async () => {
       try {
-        // ✅ FIRST: Test if backend is reachable
+        setLoading(true); // ⬅️ START LOADER
 
-        // ✅ CLEAN: Remove unwanted fields before sending
         const cleanPlayerData = {
           fullName: player.fullName,
           mobile: player.mobile,
@@ -54,14 +55,10 @@ function PlayerRegistrationContent() {
 
         console.log("Sending clean data:", cleanPlayerData);
 
-        // ✅ ACTUAL REGISTRATION
         const res = await axios.post(
           "https://api.acplsports.in/api/players",
           cleanPlayerData,
-          {
-            headers: { "Content-Type": "application/json" },
-            timeout: 10000, // 10 second timeout
-          }
+          { headers: { "Content-Type": "application/json" }, timeout: 10000 }
         );
 
         if (res.status === 200 || res.status === 201) {
@@ -84,16 +81,29 @@ function PlayerRegistrationContent() {
         }
       } catch (err) {
         console.error("Player registration failed:", err);
-        if (err.code === 'ERR_NETWORK') {
-          alert("❌ Cannot connect to server. Please make sure the backend is running on localhost:5001");
+
+        if (err.code === "ERR_NETWORK") {
+          alert("❌ Cannot connect to server. Please make sure the backend is running.");
         } else {
           alert("❌ Registration failed: " + (err.response?.data?.message || "Please try again."));
         }
+      } finally {
+        setLoading(false); // ⬅️ STOP LOADER
       }
     };
 
+
     registerPlayer();
   }, [searchParams]);
+
+  {
+    loading && (
+      <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+        <div className="w-10 h-10 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    )
+  }
+
 
   const playerRoles = ["Batsman", "Bowler", "All-Rounder"];
 
@@ -215,7 +225,7 @@ function PlayerRegistrationContent() {
       if (stateDropdownRef.current && !stateDropdownRef.current.contains(event.target)) {
         setShowStates(false);
       }
-   
+
       if (trialDropdownRef.current && !trialDropdownRef.current.contains(event.target)) {
         setShowTrials(false);
       }
@@ -280,12 +290,12 @@ function PlayerRegistrationContent() {
         data: formData,
         expiry: Date.now() + 10 * 60 * 1000, // expires after 5 minutes
       };
-      
+
       localStorage.setItem("player", JSON.stringify(playerObj));
 
       window.location.href = `https://predicts.in/checkout/graphic-design?${query}`;
 
-      
+
     } catch (err) {
       console.error(err);
       alert("⚠️ Error submitting registration. Please try again.");
@@ -523,7 +533,7 @@ function PlayerRegistrationContent() {
                 />
               </div>
 
-               {/* MOBILE */}
+              {/* MOBILE */}
               <div>
                 <label className="block text-black font-semibold mb-2">
                   Aadhar Number *
@@ -674,7 +684,7 @@ function PlayerRegistrationContent() {
                 )}
               </div>
 
-            
+
             </div>
 
             {/* REGISTRATION DETAILS */}
@@ -866,7 +876,7 @@ function PlayerRegistrationContent() {
                 </div>
               </div>
 
-     
+
 
               {/* Final Confirmation */}
               <div className="bg-blue-50 border border-blue-200 rounded-xl p-5">
