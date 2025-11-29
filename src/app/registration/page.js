@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import Head from "next/head";
-import Link from "next/link";
+import { load } from '@cashfreepayments/cashfree-js';
 import axios from "axios";
 import Navigation from "../../components/Navigation";
 import Footer from "@/components/Footer";
@@ -12,98 +11,24 @@ import Footer from "@/components/Footer";
 function PlayerRegistrationContent() {
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
+  const cashfreeRef = useRef(null);
 
-
+  // Initialize Cashfree
   useEffect(() => {
-    const acpl = searchParams.get("acpl");
-    if (!acpl) return;
-
-    const stored = localStorage.getItem("player");
-    if (!stored) {
-      console.log("No player data found in localStorage");
-      return;
-    }
-
-    const parsed = JSON.parse(stored);
-    if (Date.now() > parsed.expiry) {
-      localStorage.removeItem("player");
-      console.log("Player data expired");
-      return;
-    }
-
-    const player = parsed.data;
-    console.log("Registering player:", player);
-
-    // Replace email with ?acpl=EMAIL
-    player.email = acpl;
-
-    const registerPlayer = async () => {
+    const initCashfree = async () => {
       try {
-        setLoading(true); // ⬅️ START LOADER
-
-        const cleanPlayerData = {
-          fullName: player.fullName,
-          mobile: player.mobile,
-          email: player.email,
-          dob: player.dob,
-          role: player.role,
-          state: player.state,
-          city: player.city,
-          trialsCity: player.trialsCity,
-          aadharNumber: player.aadharNumber,
-        };
-
-        console.log("Sending clean data:", cleanPlayerData);
-
-        const res = await axios.post(
-          "https://api.acplsports.in/api/players",
-          cleanPlayerData,
-          { headers: { "Content-Type": "application/json" }, timeout: 10000 }
-        );
-
-        if (res.status === 200 || res.status === 201) {
-          alert("🎉 Registration successful!");
-          setShowReview(false);
-          setFormData({
-            fullName: "",
-            mobile: "",
-            email: "",
-            dob: "",
-            role: "",
-            battingStyle: "",
-            bowlingStyle: "",
-            state: "",
-            city: "",
-            trialsCity: "",
-            agreeToTerms: false,
-          });
-          localStorage.removeItem("player");
-        }
-      } catch (err) {
-        console.error("Player registration failed:", err);
-
-        if (err.code === "ERR_NETWORK") {
-          alert("❌ Cannot connect to server. Please make sure the backend is running.");
-        } else {
-          alert("❌ Registration failed: " + (err.response?.data?.message || "Please try again."));
-        }
-      } finally {
-        setLoading(false); // ⬅️ STOP LOADER
+        // Use 'sandbox' for testing, 'production' for live
+        const cashfree = await load({
+          mode: 'sandbox'
+        });
+        cashfreeRef.current = cashfree;
+        console.log("Cashfree SDK loaded successfully");
+      } catch (error) {
+        console.error("Failed to load Cashfree SDK:", error);
       }
     };
-
-
-    registerPlayer();
-  }, [searchParams]);
-
-  {
-    loading && (
-      <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-        <div className="w-10 h-10 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    )
-  }
-
+    initCashfree();
+  }, []);
 
   const playerRoles = ["Batsman", "Bowler", "All-Rounder"];
 
@@ -258,7 +183,7 @@ function PlayerRegistrationContent() {
     setShowReview(true);
   };
 
-  // ✅ FINAL SUBMIT FUNCTION (SEND DATA TO BACKEND)
+  // ✅ CREATE CASHFREE ORDER AND INITIATE PAYMENT
   const handleFinalSubmit = async () => {
     if (!finalConfirmation) {
       alert("Please confirm your details before final submission.");
@@ -266,45 +191,159 @@ function PlayerRegistrationContent() {
     }
 
     try {
-      const submissionData = new FormData();
-      submissionData.append("fullName", formData.fullName);
-      submissionData.append("mobile", formData.mobile);
-      submissionData.append("email", formData.email);
-      submissionData.append("dob", formData.dob);
-      submissionData.append("role", formData.role);
-      submissionData.append("state", formData.state);
-      submissionData.append("city", formData.city);
-      submissionData.append("trialsCity", formData.trialsCity);
-      submissionData.append("aadharNumber", formData.aadharNumber);
+      setLoading(true);
 
-      const query = new URLSearchParams({
-        name: formData.fullName,
-        email: formData.email,
-        phone: formData.mobile,
-        sid: 'graphic-design-001',
-        planPrice: '749',   // <-- FIXED
-        gateway: 'razorpay',
-      }).toString();
+      // Generate unique order ID
+      const orderId = `ACPL_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-      const playerObj = {
-        data: formData,
-        expiry: Date.now() + 10 * 60 * 1000, // expires after 5 minutes
+      // Create order data for Cashfree
+      const orderData = {
+        orderId: orderId,
+        orderAmount: "749.00",
+        orderCurrency: "INR",
+        customerName: formData.fullName,
+        customerPhone: formData.mobile,
+        customerEmail: formData.email,
+        playerData: formData
       };
 
-      localStorage.setItem("player", JSON.stringify(playerObj));
+      // Call your backend to create Cashfree order
+      const response = await axios.post(
+        "https://api.acplsports.in/api/payment/create-order",
+        orderData,
+        {
+          headers: { "Content-Type": "application/json" },
+          timeout: 15000
+        }
+      );
+      if (response.data && response?.data?.payment_session_id) {
+        // Store player data in localStorage for retrieval after payment
+        const playerObj = {
+          data: formData,
+          orderId: orderId,
+          expiry: Date.now() + 30 * 60 * 1000, // 30 minutes expiry
+        };
 
-      window.location.href = `https://predicts.in/checkout/graphic-design?${query}`;
+        localStorage.setItem("player", JSON.stringify(playerObj));
 
+        console.log(response.data.payment_session_id)
+
+        // Initialize Cashfree checkout
+        await initializeCashfreeCheckout(response?.data?.payment_session_id);
+      } else {
+        throw new Error("Failed to create payment order");
+      }
 
     } catch (err) {
-      console.error(err);
-      alert("⚠️ Error submitting registration. Please try again.");
+      console.error("Payment initiation failed:", err);
+      alert("❌ Payment initiation failed: " + (err.response?.data?.message || "Please try again."));
+      setLoading(false);
     }
   };
+
+  // Initialize Cashfree checkout
+  const initializeCashfreeCheckout = async (paymentSessionId) => {
+    try {
+      if (!cashfreeRef.current) {
+        throw new Error("Cashfree SDK not loaded");
+      }
+
+      const checkoutOptions = {
+        paymentSessionId: paymentSessionId,
+        redirectTarget: "_self" // Opens in same tab
+      };
+
+      cashfreeRef.current.checkout(checkoutOptions);
+    } catch (error) {
+      console.error("Cashfree checkout error:", error);
+      alert("Payment initialization failed. Please try again.");
+      setLoading(false);
+    }
+  };
+
+  // Handle payment success callback (this would be called from your return URL page)
+  // Handle payment page return
+  useEffect(() => {
+    const verifyPayment = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const orderId = urlParams.get("order_id");
+
+      // ❌ No order_id → no payment return
+      if (!orderId) return;
+
+      // ✔ Start loading until verification is finished
+      setLoading(true);
+
+      try {
+        console.log("Verifying order:", orderId);
+
+        const playerStored = JSON.parse(localStorage.getItem("player"));
+        if (!playerStored || !playerStored.data) {
+          alert("Session expired. Please register again.");
+          setLoading(false);
+          return;
+        }
+
+        // 🟦 Backend verification
+        const verifyResponse = await axios.post(
+          `https://api.acplsports.in/api/payment/verify-and-register/${orderId}`,
+          playerStored.data
+        );
+
+        if (verifyResponse.data.success) {
+          alert("🎉 Registration successful! Welcome to ACPL.");
+
+          localStorage.removeItem("player");
+          setShowReview(false);
+
+          // Reset form
+          setFormData({
+            fullName: "",
+            mobile: "",
+            email: "",
+            dob: "",
+            role: "",
+            battingStyle: "",
+            bowlingStyle: "",
+            state: "",
+            city: "",
+            trialsCity: "",
+            agreeToTerms: false,
+            aadharNumber: "",
+          });
+
+          // ✅ REMOVE order_id from URL (clean URL)
+          window.history.replaceState({}, document.title, window.location.pathname);
+        } else {
+          alert("Payment verification failed. Please contact support.");
+        }
+
+      } catch (error) {
+        console.error("Verification error:", error);
+        alert("Something went wrong while verifying payment.");
+      }
+
+      // ✔ Loader OFF only after everything completed
+      setLoading(false);
+    };
+
+    verifyPayment();
+  }, []);
+
+
+
 
   return (
     <div className="min-h-screen bg-white">
       <Navigation />
+
+      {/* Loading Overlay */}
+      {loading && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+          <div className="w-10 h-10 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+          <p className="ml-3 text-white">Processing payment...</p>
+        </div>
+      )}
 
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-[#002E5D] to-[#081B33] py-10 md:py-24 px-4 text-white">
@@ -327,7 +366,7 @@ function PlayerRegistrationContent() {
               Limited spots available • Professional scouting guaranteed
             </p>
           </div>
-        </div>{" "}
+        </div>
       </section>
 
       {/* Mission & About Section */}
@@ -533,7 +572,7 @@ function PlayerRegistrationContent() {
                 />
               </div>
 
-              {/* MOBILE */}
+              {/* AADHAR */}
               <div>
                 <label className="block text-black font-semibold mb-2">
                   Aadhar Number *
@@ -546,7 +585,7 @@ function PlayerRegistrationContent() {
                   required
                   pattern="[0-9]{12}"
                   className="w-full px-4 py-3 bg-transparent border border-gray-400 rounded-lg text-black placeholder-gray-500 outline-none"
-                  placeholder="10-digit mobile number"
+                  placeholder="12-digit aadhar number"
                 />
               </div>
 
@@ -634,8 +673,6 @@ function PlayerRegistrationContent() {
                   placeholder={"Enter your city"}
                   autoComplete="off"
                 />
-
-
               </div>
 
               {/* TRIAL CITY */}
@@ -683,8 +720,6 @@ function PlayerRegistrationContent() {
                   </ul>
                 )}
               </div>
-
-
             </div>
 
             {/* REGISTRATION DETAILS */}
@@ -876,8 +911,6 @@ function PlayerRegistrationContent() {
                 </div>
               </div>
 
-
-
               {/* Final Confirmation */}
               <div className="bg-blue-50 border border-blue-200 rounded-xl p-5">
                 <label className="flex items-start space-x-3">
@@ -910,18 +943,28 @@ function PlayerRegistrationContent() {
               <button
                 type="button"
                 onClick={handleFinalSubmit}
-                disabled={!finalConfirmation}
+                disabled={!finalConfirmation || loading}
                 className="px-8 py-3 bg-gradient-to-r from-emerald-500 to-blue-600 text-white rounded-xl font-semibold hover:from-emerald-600 hover:to-blue-700 transition-all duration-300 disabled:from-slate-400 disabled:to-slate-400 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
               >
-                <span>Complete Registration - ₹749</span>
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                </svg>
+                {loading ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Processing...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Complete Registration - ₹749</span>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </>
+                )}
               </button>
             </div>
           </div>
         </div>
       )}
+
 
       {/* Cricket Teams Section */}
       <section className="py-12 md:py-16 px-4 bg-white">
