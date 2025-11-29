@@ -19,7 +19,7 @@ function PlayerRegistrationContent() {
       try {
         // Use 'sandbox' for testing, 'production' for live
         const cashfree = await load({
-          mode: 'sandbox'
+          mode: 'production'
         });
         cashfreeRef.current = cashfree;
         console.log("Cashfree SDK loaded successfully");
