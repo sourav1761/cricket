@@ -474,7 +474,7 @@ function PlayerRegistrationContent() {
                       Age Limit:
                     </span>
                     <span className="text-gray-700 font-medium text-sm md:text-base">
-                      14+ (Open to all aspiring players)
+                      13+ (Open to all aspiring players)
                     </span>
                   </div>
 

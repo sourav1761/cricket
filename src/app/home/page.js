@@ -199,54 +199,79 @@ export default function Home() {
   </div>
 </section>
 
-      {/* Prize Pool Section */}
-      <section className="py-16 px-4 bg-white">
-        <div className="container mx-auto max-w-4xl">
-          <div className="text-center mb-12">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-4">
-              Prize Pool
-            </h2>
-            <p className="text-gray-600">
-              Compete for impressive rewards and recognition
-            </p>
-          </div>
+   {/* Prize Pool Section */}
+<section className="py-16 px-4 bg-white">
+  <div className="container mx-auto max-w-4xl">
+ 
+    {/* Prize Card */}
+    <div className="bg-[#002C5F] rounded-2xl p-8 text-white">
+      <div className="text-center mb-8">
+        <div className="text-4xl md:text-5xl font-bold mb-2">₹172,500</div>
+        <p className="text-gray-300">Total Prize Money</p>
+      </div>
 
-          <div className="bg-[#002C5F] rounded-2xl p-8 text-white">
-            <div className="text-center mb-8">
-              <div className="text-4xl md:text-5xl font-bold mb-2">₹172,500</div>
-              <p className="text-gray-300">Total Prize Money</p>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-white/10 p-6 rounded-xl text-center border border-white/20">
-                <div className="text-2xl font-bold mb-2 text-yellow-400">1st Prize</div>
-                <div className="text-3xl font-bold mb-3">₹1,21,000</div>
-                <div className="space-y-1 text-sm text-gray-300">
-                  <div>Champions Trophy</div>
-                  <div>Gold Medals</div>
-                  <div>Team Jerseys</div>
-                </div>
-              </div>
-              
-              <div className="bg-white/10 p-6 rounded-xl text-center border border-white/20">
-                <div className="text-2xl font-bold mb-2 text-gray-300">2nd Prize</div>
-                <div className="text-3xl font-bold mb-3">₹51,500</div>
-                <div className="space-y-1 text-sm text-gray-300">
-                  <div>Runners-up Trophy</div>
-                  <div>Silver Medals</div>
-                  <div>Team Awards</div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="text-center mt-6">
-              <div className="inline-block bg-green-400 text-blue-900 px-4 py-2 rounded-full font-semibold text-sm">
-                + Individual Player Awards
-              </div>
-            </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-white/10 p-6 rounded-xl text-center border border-white/20">
+          <div className="text-2xl font-bold mb-2 text-yellow-400">1st Prize</div>
+          <div className="text-3xl font-bold mb-3">₹1,21,000</div>
+          <div className="space-y-1 text-sm text-gray-300">
+            <div>Champions Trophy</div>
+            <div>Gold Medals</div>
+            <div>Team Jerseys</div>
           </div>
         </div>
-      </section>
+
+        <div className="bg-white/10 p-6 rounded-xl text-center border border-white/20">
+          <div className="text-2xl font-bold mb-2 text-gray-300">2nd Prize</div>
+          <div className="text-3xl font-bold mb-3">₹51,500</div>
+          <div className="space-y-1 text-sm text-gray-300">
+            <div>Runners-up Trophy</div>
+            <div>Silver Medals</div>
+            <div>Team Awards</div>
+          </div>
+        </div>
+      </div>
+
+      <div className="text-center mt-6">
+        <div className="inline-block bg-green-400 text-blue-900 px-4 py-2 rounded-full font-semibold text-sm">
+          + Individual Player Awards
+        </div>
+      </div>
+    </div>
+       <div className="text-center mb-12">
+      {/* <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-4">
+        Prize Pool
+      </h2>
+      <p className="text-gray-600">
+        Compete for impressive rewards and recognition
+      </p> */}
+    </div>
+
+    {/* 🖼 Prize Images */}
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+      {[
+        "/assets/IMG_4729.PNG",
+        "/assets/IMG_4730.PNG",
+        "/assets/IMG_4731.PNG",
+        "/assets/IMG_4732.PNG",
+      ].map((src, index) => (
+        <div
+          key={index}
+          className="rounded-xl overflow-hidden border border-gray-200 shadow-sm"
+        >
+          <Image
+            src={src}
+            alt={`Prize ${index + 1}`}
+            width={400}
+            height={300}
+            className="w-110 h-60 object-contain"
+          />
+        </div>
+      ))}
+    </div>
+
+  </div>
+</section>
 
       {/* CTA Section */}
       <section className="py-16 px-4 bg-gray-800 text-white">

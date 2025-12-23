@@ -14,6 +14,9 @@ export default function Navigation() {
     { href: "/More-Info", label: "More Info" },
     { href: "/about", label: "About" },
     { href: "/contact", label: "Contact Us" },
+     { href: "/Privacy", label: "Privacy" },
+    { href: "/Terms", label: "Terms" },
+     { href: "/Refund", label: "Refund" },
   ];
 
   const toggleMenu = () => setIsMenuOpen((prev) => !prev);
