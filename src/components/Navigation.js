@@ -77,7 +77,7 @@ export default function Navigation() {
           {/* --- Mobile Navigation --- */}
           <div
             className={`md:hidden transition-all duration-300 overflow-hidden ${
-              isMenuOpen ? "max-h-[400px] opacity-100 mt-4" : "max-h-0 opacity-0"
+              isMenuOpen ? "max-h-[600px] opacity-100 mt-4" : "max-h-0 opacity-0"
             }`}
           >
             <ul className="flex flex-col gap-3 items-center">
