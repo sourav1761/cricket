@@ -34,25 +34,28 @@ function PlayerRegistrationContent() {
 
   // Mapping of states to trial cities
   const stateCityMap = {
-    "Uttar Pradesh": ["Kanpur", "Lucknow", "Varanasi", "Agra"],
-    "Madhya Pradesh": ["Indore", "Bhopal", "Gwalior", "Jabalpur"],
-    "Maharashtra": ["Mumbai", "Pune", "Nagpur"],
-    "Delhi (NCT)": ["Delhi"],
-    Bihar: ["Patna", "Bhagalpur"],
-    Rajasthan: ["Jaipur", "Udaipur", "Jodhpur"],
-    Chhattisgarh: ["Raipur", "Bijapur"],
-    Gujarat: ["Surat", "Ahmedabad"],
-    Odisha: ["Bhubaneswar"],
-    Karnataka: ["Bengaluru"],
-    Telangana: ["Hyderabad"],
-    "Tamil Nadu": ["Chennai"],
-    "West Bengal": ["Kolkata"],
-    Assam: ["Guwahati"],
-    "Andhra Pradesh": ["Visakhapatnam", "Vijayawada"],
-    Punjab: ["Amritsar"],
-    Haryana: ["Gurgaon", "Chandigarh"],
-    Jharkhand: ["Ranchi"],
-  };
+  "Uttar Pradesh": ["Kanpur", "Lucknow", "Varanasi", "Agra"],
+  "Madhya Pradesh": ["Indore", "Bhopal", "Gwalior", "Jabalpur"],
+  Maharashtra: ["Mumbai", "Pune", "Nagpur"],
+  "Delhi (NCT)": ["Delhi"],
+  Bihar: ["Patna", "Bhagalpur"],
+  Rajasthan: ["Jaipur", "Udaipur", "Jodhpur"],
+  Chhattisgarh: ["Raipur", "Bijapur"],
+  Gujarat: ["Surat", "Ahmedabad"],
+  Odisha: ["Bhubaneswar"],
+  Karnataka: ["Bengaluru"],
+  Telangana: ["Hyderabad"],
+  "Tamil Nadu": ["Chennai"],
+  "West Bengal": ["Kolkata"],
+  Assam: ["Guwahati"],
+  "Andhra Pradesh": ["Visakhapatnam", "Vijayawada"],
+  Punjab: ["Amritsar"],
+  Haryana: ["Gurgaon", "Chandigarh"],
+  Jharkhand: ["Ranchi"],
+  "Jammu & Kashmir": ["Srinagar"],
+  Uttarakhand: ["Dehradun"],
+};
+
 
   const [formData, setFormData] = useState({
     fullName: "",
