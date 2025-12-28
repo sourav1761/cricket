@@ -208,85 +208,73 @@ function PlayerRegistrationContent() {
     try {
       setLoading(true);
 
-      // Create order data for Razorpay
-      const orderData = {
-        amount: 749, // Amount in rupees
-        currency: "INR",
-        receipt: `ACPL_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-      };
+      // Razorpay flow
+      const res = await axios.post('https://api.acplsports.in/api/razorpay/create-order', {
+        amount: 749,
+        currency: 'INR',
+        receipt: `ACPL_${Date.now()}`,
+        name: formData.fullName,
+        email: formData.email,
+        phone: formData.mobile,
+      });
 
-      // Call your backend to create Razorpay order
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL || 'https://api.acplsports.in'}/api/razorpay/create-order`,
-        orderData,
-        {
-          headers: { "Content-Type": "application/json" },
-          timeout: 15000
-        }
-      );
-      
-      if (response.data && response.data.id) {
-        // Store player data in localStorage for retrieval after payment
-        const playerObj = {
-          data: formData,
-          razorpay_order_id: response.data.id,
-          expiry: Date.now() + 30 * 60 * 1000, // 30 minutes expiry
-        };
-
-        localStorage.setItem("player", JSON.stringify(playerObj));
-
-        console.log('Razorpay Order ID:', response.data.id);
-
-        // Initialize Razorpay checkout
-        await initializeRazorpayCheckout(response.data);
-      } else {
-        throw new Error("Failed to create payment order");
-      }
-
-    } catch (err) {
-      console.error("Payment initiation failed:", err);
-      
-      // More specific error messages
-      let errorMessage = "Please try again.";
-      if (err.code === 'ERR_NETWORK') {
-        errorMessage = "Cannot connect to server. Please check if the backend is running on https://api.acplsports.in";
-      } else if (err.response?.status === 404) {
-        errorMessage = "Payment service not found. Please check backend routes.";
-      } else if (err.response?.status >= 500) {
-        errorMessage = "Server error. Please try again later.";
-      }
-      
-      alert("❌ Payment initiation failed: " + errorMessage);
-      setLoading(false);
-    }
-  };
-
-  // Initialize Razorpay checkout
-  const initializeRazorpayCheckout = async (orderData) => {
-    try {
-      if (!window.Razorpay) {
-        throw new Error("Razorpay SDK not loaded");
-      }
-
+      const order = res.data;
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_Rx0unQJhR6kLZO ', // Replace with your actual Razorpay key ID
-        amount: orderData.amount, // Amount in paise from backend
-        currency: orderData.currency,
-        name: 'ACPL Sports',
+        key: 'rzp_test_Rx0unQJhR6kLZO',
+        amount: order.amount,
+        currency: 'INR',
+        name: formData.fullName,
         description: 'Cricket Player Registration Fee',
-        order_id: orderData.id,
-        handler: function (response) {
-          // Payment successful
-          handlePaymentSuccess(response);
+        order_id: order.id,
+        handler: async function (response) {
+          try {
+            const verifyRes = await axios.post('https://api.acplsports.in/api/razorpay/verify-order', {
+              ...response,
+              email: formData.email,
+              name: formData.fullName,
+              phone: formData.mobile,
+              amount: 749,
+            });
+
+            console.log(verifyRes.data);
+
+            if (verifyRes?.data?.success) {
+              alert("🎉 Registration successful! Welcome to ACPL.");
+              localStorage.removeItem("player");
+              setShowReview(false);
+              setLoading(false);
+              
+              // Reset form
+              setFormData({
+                fullName: "",
+                mobile: "",
+                email: "",
+                dob: "",
+                role: "",
+                battingStyle: "",
+                bowlingStyle: "",
+                state: "",
+                city: "",
+                trialsCity: "",
+                agreeToTerms: false,
+                aadharNumber: "",
+              });
+            } else {
+              alert('Payment verification failed. Please contact support.');
+              setLoading(false);
+            }
+          } catch (error) {
+            alert('Error verifying payment. Please try again.');
+            console.error(error);
+            setLoading(false);
+          }
         },
-        prefill: {
-          name: formData.fullName,
-          email: formData.email,
-          contact: formData.mobile
+        prefill: { 
+          name: formData.fullName, 
+          email: formData.email, 
+          contact: formData.mobile 
         },
-        theme: {
-          color: '#002C5F'
-        },
+        theme: { color: '#002C5F' },
         modal: {
           ondismiss: function() {
             setLoading(false);
@@ -295,72 +283,17 @@ function PlayerRegistrationContent() {
         }
       };
 
-      const rzp = new window.Razorpay(options);
-      rzp.open();
-    } catch (error) {
-      console.error("Razorpay checkout error:", error);
-      alert("Payment initialization failed. Please try again.");
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
+      
+    } catch (err) {
+      console.error("Payment initiation failed:", err);
+      alert("❌ Payment initiation failed: " + (err.response?.data?.error || "Please try again."));
       setLoading(false);
     }
   };
 
-  // Handle payment success
-  const handlePaymentSuccess = async (response) => {
-    try {
-      console.log('Payment Success:', response);
-      
-      const playerStored = JSON.parse(localStorage.getItem("player"));
-      if (!playerStored || !playerStored.data) {
-        alert("Session expired. Please register again.");
-        setLoading(false);
-        return;
-      }
 
-      // Verify payment with backend
-      const verifyResponse = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL || 'https://api.acplsports.in'}/api/razorpay/verify-order`,
-        {
-          razorpay_order_id: response.razorpay_order_id,
-          razorpay_payment_id: response.razorpay_payment_id,
-          razorpay_signature: response.razorpay_signature,
-          name: playerStored.data.fullName,
-          email: playerStored.data.email,
-          phone: playerStored.data.mobile,
-          amount: 749
-        }
-      );
-
-      if (verifyResponse.data.success) {
-        alert("🎉 Registration successful! Welcome to ACPL.");
-        
-        localStorage.removeItem("player");
-        setShowReview(false);
-        
-        // Reset form
-        setFormData({
-          fullName: "",
-          mobile: "",
-          email: "",
-          dob: "",
-          role: "",
-          battingStyle: "",
-          bowlingStyle: "",
-          state: "",
-          city: "",
-          trialsCity: "",
-          agreeToTerms: false,
-          aadharNumber: "",
-        });
-      } else {
-        alert("Payment verification failed: " + (verifyResponse.data.message || "Please contact support."));
-      }
-    } catch (error) {
-      console.error("Payment verification error:", error);
-      alert("Something went wrong while verifying payment: " + (error.response?.data?.message || "Please contact support."));
-    }
-    
-    setLoading(false);
-  };
 
   // Handle payment page return - COMMENTED OUT CASHFREE VERIFICATION
   // useEffect(() => {
