@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import Navigation from '../../components/Navigation';
 import Footer from "@/components/Footer";
-import {FaBullseye, FaBolt, FaGlobeAsia , FaTrophy,FaMapMarkerAlt, FaVideo, FaUsers } from 'react-icons/fa';
+import {FaBullseye, FaBolt, FaGlobeAsia , FaTrophy,FaMapMarkerAlt, FaVideo, FaUsers, FaExclamationTriangle } from 'react-icons/fa';
 
 
 export default function Home() {
@@ -19,6 +19,65 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
+
+      
+
+     {/* Scrolling Alert Banner - Reel Type */}
+<div className="bg-gradient-to-r from-red-600 to-orange-600 text-white py-3 w-full z-50 overflow-hidden relative">
+  
+  <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-red-600 to-transparent z-10" />
+  <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-orange-600 to-transparent z-10" />
+
+  <div
+    className="flex whitespace-nowrap"
+    style={{
+      animation: "scroll 30s linear infinite",
+      width: "max-content",
+    }}
+  >
+    {/* BLOCK 1 */}
+    <div className="flex items-center gap-4 px-6">
+      <FaExclamationTriangle className="w-5 h-5 text-yellow-300 animate-pulse" />
+      <span className="font-bold text-sm sm:text-base">
+        ⚠️ Important Notice: Our website is facing payment gateway issues. Please re-check the website after 24-48 hours for registration.
+      </span>
+      <span className="mx-8">•</span>
+      <span className="font-bold text-sm sm:text-base">
+        ⚠️ महत्वपूर्ण सूचना: हमारी वेबसाइट को पेमेंट गेटवे समस्या का सामना करना पड़ रहा है। कृपया रजिस्ट्रेशन के लिए 24-48 घंटे बाद वेबसाइट को दोबारा चेक करें।
+      </span>
+      <span className="mx-8">•</span>
+    </div>
+
+    {/* BLOCK 2 (duplicate) */}
+    <div className="flex items-center gap-4 px-6">
+      <FaExclamationTriangle className="w-5 h-5 text-yellow-300 animate-pulse" />
+      <span className="font-bold text-sm sm:text-base">
+        ⚠️ Important Notice: Our website is facing payment gateway issues. Please re-check the website after 24-48 hours for registration.
+      </span>
+      <span className="mx-8">•</span>
+      <span className="font-bold text-sm sm:text-base">
+        ⚠️ महत्वपूर्ण सूचना: हमारी वेबसाइट को पेमेंट गेटवे समस्या का सामना करना पड़ रहा है। कृपया रजिस्ट्रेशन के लिए 24-48 घंटे बाद वेबसाइट को दोबारा चेक करें।
+      </span>
+      <span className="mx-8">•</span>
+    </div>
+  </div>
+
+  {/* GLOBAL CSS (App Router Safe) */}
+  <style>{`
+    @keyframes scroll {
+      0% {
+        transform: translateX(0);
+      }
+      100% {
+        transform: translateX(-50%);
+      }
+    }
+  `}</style>
+</div>
+
+
+   
+
 
       <Navigation />
 
@@ -307,3 +366,14 @@ export default function Home() {
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
