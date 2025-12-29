@@ -797,17 +797,24 @@ function PlayerRegistrationContent() {
             </div>
 
             {/* SUBMIT BUTTON */}
-            <div className="text-center mt-8">
-              <button
-                type="submit"
-                className="bg-[#002C5F] text-white font-bold py-4 px-12 rounded-2xl text-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl w-full md:w-auto"
-              >
-                Proceed to Register - ₹749
-              </button>
-              <p className="text-slate-600 mt-4 text-sm">
-                Secure registration • Professional platform • Talent recognition
-              </p>
-            </div>
+          <div className="text-center mt-8">
+  <button
+    type="submit"
+    disabled
+    className="bg-[#002C5F]/60 text-white font-bold py-4 px-12 rounded-2xl text-lg shadow-lg w-full md:w-auto cursor-not-allowed"
+  >
+    Registration Temporarily Unavailable
+  </button>
+
+  <p className="text-red-600 mt-4 text-sm font-semibold">
+    ⚠️ The site is facing payment gateway issues. We will fix this soon and registration will start shortly.
+  </p>
+
+  <p className="text-slate-500 mt-2 text-sm">
+    Secure registration • Professional platform • Talent recognition
+  </p>
+</div>
+
           </form>
         </div>
       </section>
