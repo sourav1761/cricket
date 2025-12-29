@@ -22,7 +22,7 @@ export default function Navigation() {
   const toggleMenu = () => setIsMenuOpen((prev) => !prev);
 
   return (
-    <header className="fixed top-0 left-0 w-full z-[60] flex justify-center">
+    <header className="fixed top-8 left-0 w-full z-[60] flex justify-center">
       <div className="w-full max-w-7xl px-4 md:px-6 mt-4">
         {/* Darker frosted header bar */}
         <nav className="relative bg-black/40 backdrop-blur-2xl border border-white/20 rounded-2xl shadow-2xl px-5 py-4 md:py-5">
